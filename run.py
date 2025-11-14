@@ -1,11 +1,30 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # PYTHON_ARGCOMPLETE_OK
-from typing import get_type_hints
+from typing import get_type_hints, Callable
+
+
+class Descriptor:
+    def __init__(self, name: str, constructor: Callable):
+        pass
+
+    def __get__(self, instance, owner=None):
+        if not instance:
+            return self
+        return getattr(self, self._name)
+
+    def __set__(self, instance, value):
+        try:
+            setattr(instance, self._name, self.constructor(value))
+        except (TypeError, ValueError) as e:
+            raise TypeError("{self._name} cannot be set to {value}") from e
 
 
 class CheckedMeta(type):
     def __new__(mcls, clsname, bases, clsdict):
+        for name, constructor in clsdict.getattr("__annotations__").items():
+            clsdict[name] = Descriptor(name, constructor)
+
         return super().__new__(mcls, clsname, bases, clsdict)
 
 
