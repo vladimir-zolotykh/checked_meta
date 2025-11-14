@@ -10,10 +10,6 @@ class CheckedMeta(type):
 
 
 class Checked(metaclass=CheckedMeta):
-    pass
-
-
-class Movie(Checked):
     def __init__(self, **kwargs):
         for name, value in kwargs.items():
             setattr(self, name, value)
@@ -23,8 +19,10 @@ class Movie(Checked):
             (k + "=" + repr(getattr(self, k)))
             for k, v in self.__class__.__annotations__.items()
         ]
-        return f"Movie({', '.join(pairs)})"
+        return f"{self.__class__.__name__}({', '.join(pairs)})"
 
+
+class Movie(Checked):
     title: str
     year: int
     box_office: float
