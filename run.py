@@ -12,6 +12,14 @@
 'The Godfather'
 >>> movie
 Movie(title='The Godfather', year=1972, box_office=137.0)
+>>> blockbuster = Movie(title='Avatar', year=2009, box_office='billions')
+Traceback (most recent call last):
+  ...
+TypeError: _box_office cannot be set to 'billions'
+>>> movie.year = 'MCMLXXII'
+Traceback (most recent call last):
+  ...
+TypeError: _year cannot be set to 'MCMLXXII'
 """
 from typing import get_type_hints, Callable
 from inspect import Signature, Parameter
