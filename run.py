@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # PYTHON_ARGCOMPLETE_OK
 from typing import get_type_hints, Callable
+from inspect import Signature, Parameter
 
 
 class Descriptor:
@@ -15,6 +16,8 @@ class Descriptor:
         return getattr(instance, self._name)
 
     def __set__(self, instance, value):
+        if value is (...):  # no value provided
+            pass
         try:
             setattr(instance, self._name, self.constructor(value))
         except (TypeError, ValueError) as e:
@@ -30,13 +33,18 @@ class CheckedMeta(type):
         return super().__new__(mcls, clsname, bases, clsdict)
 
 
+def signature_from_list(names: list[str]) -> Signature:
+    parameters = [
+        Parameter(name=name, kind=Parameter.POSITIONAL_OR_KEYWORD) for name in names
+    ]
+    return Signature(parameters)
+
+
 class Checked(metaclass=CheckedMeta):
     def __init__(self, **kwargs):
-        for name in self.fields():
-            setattr(self, name, kwargs.get(name, ...))
-
-        # for name, value in kwargs.items():
-        #     setattr(self, name, value)
+        sig = signature_from_list(self.fields())
+        for name, value in sig.bind(**kwargs).arguments.items():
+            setattr(self, name, value)
 
     @classmethod
     def fields(cls):
