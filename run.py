@@ -1,6 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # PYTHON_ARGCOMPLETE_OK
+"""
+>>> class Movie(Checked):
+...     title: str
+...     year: int
+...     box_office: float
+...
+>>> movie = Movie(title='The Godfather', year=1972, box_office=137)
+>>> movie.title
+'The Godfather'
+>>> movie
+Movie(title='The Godfather', year=1972, box_office=137.0)
+"""
 from typing import get_type_hints, Callable
 from inspect import Signature, Parameter
 
@@ -65,6 +77,6 @@ class Movie(Checked):
 
 
 if __name__ == "__main__":
-    movie = Movie(title="The Godfather", year=1972, box_office=137)
-    # movie = Movie(title="The Godfather", year="long ago", box_office=137)
-    print(movie)
+    import doctest
+
+    doctest.testmod()
