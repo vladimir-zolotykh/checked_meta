@@ -9,7 +9,7 @@ class CheckedMeta(type):
         return super().__new__(mcls, clsname, bases, clsdict)
 
 
-class Checked:
+class Checked(metaclass=CheckedMeta):
     pass
 
 
