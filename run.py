@@ -14,10 +14,16 @@ class Checked(metaclass=CheckedMeta):
 
 
 class Movie(Checked):
-    def __init__(self, title, year, box_office):
-        self.title = title
-        self.year = year
-        self.box_office = box_office
+    def __init__(self, **kwargs):
+        for name, value in kwargs.items():
+            setattr(self, name, value)
+
+    def __repr__(self):
+        pairs = [
+            (k + "=" + repr(getattr(self, k)))
+            for k, v in self.__class__.__annotations__.items()
+        ]
+        return f"Movie({', '.join(pairs)})"
 
     title: str
     year: int
@@ -25,7 +31,5 @@ class Movie(Checked):
 
 
 if __name__ == "__main__":
-    print(get_type_hints(Movie))
     movie = Movie(title="The Godfather", year=1972, box_office=137)
-    # movie = Movie()
-    print(movie.__annotations__)
+    print(movie)
