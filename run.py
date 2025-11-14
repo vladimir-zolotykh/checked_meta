@@ -6,23 +6,25 @@ from typing import get_type_hints, Callable
 
 class Descriptor:
     def __init__(self, name: str, constructor: Callable):
-        pass
+        self._name = "_" + name
+        self.constructor = constructor
 
     def __get__(self, instance, owner=None):
         if not instance:
             return self
-        return getattr(self, self._name)
+        return getattr(instance, self._name)
 
     def __set__(self, instance, value):
         try:
             setattr(instance, self._name, self.constructor(value))
         except (TypeError, ValueError) as e:
-            raise TypeError("{self._name} cannot be set to {value}") from e
+            raise TypeError(f"{self._name} cannot be set to {value!r}") from e
 
 
 class CheckedMeta(type):
     def __new__(mcls, clsname, bases, clsdict):
-        for name, constructor in clsdict.getattr("__annotations__").items():
+        annotations = clsdict.get("__annotations__", {})
+        for name, constructor in annotations.items():
             clsdict[name] = Descriptor(name, constructor)
 
         return super().__new__(mcls, clsname, bases, clsdict)
@@ -48,5 +50,6 @@ class Movie(Checked):
 
 
 if __name__ == "__main__":
-    movie = Movie(title="The Godfather", year=1972, box_office=137)
+    # movie = Movie(title="The Godfather", year=1972, box_office=137)
+    movie = Movie(title="The Godfather", year="long ago", box_office=137)
     print(movie)
