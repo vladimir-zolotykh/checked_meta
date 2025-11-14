@@ -32,8 +32,15 @@ class CheckedMeta(type):
 
 class Checked(metaclass=CheckedMeta):
     def __init__(self, **kwargs):
-        for name, value in kwargs.items():
-            setattr(self, name, value)
+        for name in self.fields():
+            setattr(self, name, kwargs.get(name, ...))
+
+        # for name, value in kwargs.items():
+        #     setattr(self, name, value)
+
+    @classmethod
+    def fields(cls):
+        return get_type_hints(cls)
 
     def __repr__(self):
         pairs = [
@@ -50,6 +57,6 @@ class Movie(Checked):
 
 
 if __name__ == "__main__":
-    # movie = Movie(title="The Godfather", year=1972, box_office=137)
-    movie = Movie(title="The Godfather", year="long ago", box_office=137)
+    movie = Movie(title="The Godfather", year=1972, box_office=137)
+    # movie = Movie(title="The Godfather", year="long ago", box_office=137)
     print(movie)
