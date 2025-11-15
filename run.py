@@ -22,7 +22,11 @@ Traceback (most recent call last):
 TypeError: _year cannot be set to 'MCMLXXII'
 >>> Movie(title='Life of Brian')
 Movie(title='Life of Brian', year=0, box_office=0.0)
-
+>>> blockbuster = Movie(title='Avatar', year=2009, box_office=2000,
+...                     director='James Cameron')
+Traceback (most recent call last):
+  ...
+TypeError: got an unexpected keyword argument 'director'
 """
 from typing import get_type_hints, Callable, Any
 from inspect import Signature, Parameter
