@@ -20,6 +20,9 @@ TypeError: _box_office cannot be set to 'billions'
 Traceback (most recent call last):
   ...
 TypeError: _year cannot be set to 'MCMLXXII'
+>>> Movie(title='Life of Brian')
+Movie(title='Life of Brian', year=0, box_office=0.0)
+
 """
 from typing import get_type_hints, Callable, Any
 from inspect import Signature, Parameter
