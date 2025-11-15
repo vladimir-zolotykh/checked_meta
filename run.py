@@ -27,6 +27,10 @@ Movie(title='Life of Brian', year=0, box_office=0.0)
 Traceback (most recent call last):
   ...
 TypeError: got an unexpected keyword argument 'director'
+>>> movie.director = 'Francis Ford Coppola'
+Traceback (most recent call last):
+  ...
+AttributeError: 'Movie' object has no attribute 'director'
 """
 from typing import get_type_hints, Callable, Any
 from inspect import Signature, Parameter
@@ -58,11 +62,18 @@ class Descriptor:
 class CheckedMeta(type):
     def __new__(mcls, clsname, bases, clsdict):
         annotations = clsdict.get("__annotations__", {})
-        for name, constructor in annotations.items():
-            default = clsdict.get(name, None)
-            logging.info(f"CheckedMeta.__new__ {clsname = }, {name = }, {default = }")
-            descriptor = Descriptor(name, constructor, default)
-            clsdict[name] = descriptor
+        if "__slots__" not in clsdict:
+            __slots__ = []
+            for name, constructor in annotations.items():
+                default = clsdict.get(name, None)
+                logging.info(
+                    f"CheckedMeta.__new__ {clsname = }, {name = }, {default = }"
+                )
+                descriptor = Descriptor(name, constructor, default)
+                clsdict[name] = descriptor
+                __slots__.append(f"_{name}")
+            logging.info(f"CheckedMeta.__new__ {__slots__ = }")
+            clsdict["__slots__"] = __slots__
 
         return super().__new__(mcls, clsname, bases, clsdict)
 
@@ -76,6 +87,8 @@ def signature_from_dict(name_default: dict[str, Any]) -> Signature:
 
 
 class Checked(metaclass=CheckedMeta):
+    __slots__ = ()
+
     def __init__(self, **kwargs):
         sig = signature_from_dict(self.get_name_default())
         bound = sig.bind_partial(**kwargs)
