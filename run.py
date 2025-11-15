@@ -3,9 +3,9 @@
 # PYTHON_ARGCOMPLETE_OK
 """
 >>> class Movie(Checked):
-...     title: str
-...     year: int
-...     box_office: float
+...     title: str = ''
+...     year: int = 0
+...     box_office: float = 0.0
 ...
 >>> movie = Movie(title='The Godfather', year=1972, box_office=137)
 >>> movie.title
@@ -26,12 +26,16 @@ Movie(title='Life of Brian', year=0, box_office=0.0)
 """
 from typing import get_type_hints, Callable, Any
 from inspect import Signature, Parameter
+import logging
+
+logging.basicConfig(level=logging.WARNING)
 
 
 class Descriptor:
-    def __init__(self, name: str, constructor: Callable):
+    def __init__(self, name: str, constructor: Callable, default: Any = None):
         self._name = "_" + name
         self.constructor = constructor
+        self.default = default
 
     def __get__(self, instance, owner=None):
         if not instance:
@@ -51,7 +55,10 @@ class CheckedMeta(type):
     def __new__(mcls, clsname, bases, clsdict):
         annotations = clsdict.get("__annotations__", {})
         for name, constructor in annotations.items():
-            clsdict[name] = Descriptor(name, constructor)
+            default = clsdict.get(name, None)
+            logging.info(f"CheckedMeta.__new__ {clsname = }, {name = }, {default = }")
+            descriptor = Descriptor(name, constructor, default)
+            clsdict[name] = descriptor
 
         return super().__new__(mcls, clsname, bases, clsdict)
 
@@ -67,12 +74,21 @@ def signature_from_dict(name_default: dict[str, Any]) -> Signature:
 class Checked(metaclass=CheckedMeta):
     def __init__(self, **kwargs):
         sig = signature_from_dict(self.get_name_default())
-        for name, value in sig.bind(**kwargs).arguments.items():
+        bound = sig.bind_partial(**kwargs)
+        bound.apply_defaults()
+        logging.info(f"Checked.__init__ {bound = }")
+        for name, value in bound.arguments.items():
             setattr(self, name, value)
 
     @classmethod
     def get_name_default(cls) -> dict[str, Any]:
-        res = {name: cls.__dict__.get(name, None) for name in get_type_hints(cls)}
+        res: dict[str, Any] = {}
+        for name in get_type_hints(cls):
+            value = cls.__dict__.get(name, None)
+            if isinstance(value, Descriptor):
+                value = value.default
+            res[name] = value
+        # res = {name: cls.__dict__.get(name, None) for name in get_type_hints(cls)}
         return res
 
     def __repr__(self):
