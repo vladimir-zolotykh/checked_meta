@@ -21,7 +21,7 @@ Traceback (most recent call last):
   ...
 TypeError: _year cannot be set to 'MCMLXXII'
 """
-from typing import get_type_hints, Callable
+from typing import get_type_hints, Callable, Any
 from inspect import Signature, Parameter
 
 
@@ -53,22 +53,24 @@ class CheckedMeta(type):
         return super().__new__(mcls, clsname, bases, clsdict)
 
 
-def signature_from_list(names: list[str]) -> Signature:
+def signature_from_dict(name_default: dict[str, Any]) -> Signature:
     parameters = [
-        Parameter(name=name, kind=Parameter.POSITIONAL_OR_KEYWORD) for name in names
+        Parameter(name=name, kind=Parameter.POSITIONAL_OR_KEYWORD, default=default)
+        for name, default in name_default.items()
     ]
     return Signature(parameters)
 
 
 class Checked(metaclass=CheckedMeta):
     def __init__(self, **kwargs):
-        sig = signature_from_list(self.fields())
+        sig = signature_from_dict(self.get_name_default())
         for name, value in sig.bind(**kwargs).arguments.items():
             setattr(self, name, value)
 
     @classmethod
-    def fields(cls):
-        return get_type_hints(cls)
+    def get_name_default(cls) -> dict[str, Any]:
+        res = {name: cls.__dict__.get(name, None) for name in get_type_hints(cls)}
+        return res
 
     def __repr__(self):
         pairs = [
@@ -79,9 +81,9 @@ class Checked(metaclass=CheckedMeta):
 
 
 class Movie(Checked):
-    title: str
-    year: int
-    box_office: float
+    title: str = ""
+    year: int = 0
+    box_office: float = 0.0
 
 
 if __name__ == "__main__":
