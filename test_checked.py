@@ -1,0 +1,18 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# PYTHON_ARGCOMPLETE_OK
+import pytest
+
+
+from run import Checked
+
+
+def test_field_descriptor_validation_type_error():
+    class Cat(Checked):
+        name: str
+        weight: float
+
+    with pytest.raises(TypeError) as e:
+        felix = Cat(name="Felix", weight=None)  # noqa F481
+
+    assert str(e.value) == "_weight cannot be set to None"
