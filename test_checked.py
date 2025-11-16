@@ -27,3 +27,14 @@ def test_field_descriptor_validation_value_error():
         felix = Cat(name="Felix", weight="half stone")  # noqa F481
 
     assert str(e.value) == "_weight cannot be set to 'half stone'"
+
+
+def test_constructor_attribute_error():
+    class Cat(Checked):
+        name: str
+        weight: float
+
+    with pytest.raises(TypeError) as e:
+        felix = Cat(name="Felix", weight=3.2, age=7)  # noqa F481
+
+    assert str(e.value) == "got an unexpected keyword argument 'age'"
