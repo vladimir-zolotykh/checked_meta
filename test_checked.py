@@ -16,3 +16,14 @@ def test_field_descriptor_validation_type_error():
         felix = Cat(name="Felix", weight=None)  # noqa F481
 
     assert str(e.value) == "_weight cannot be set to None"
+
+
+def test_field_descriptor_validation_value_error():
+    class Cat(Checked):
+        name: str
+        weight: float
+
+    with pytest.raises(TypeError) as e:
+        felix = Cat(name="Felix", weight="half stone")  # noqa F481
+
+    assert str(e.value) == "_weight cannot be set to 'half stone'"
